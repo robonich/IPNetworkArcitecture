@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+
+<meta name="generator" content="" />
+<meta name="author" content="" />
+<meta name="description" content="東京大学電子情報工学科 2012年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」の講義用Webサイト" />
+<meta name="keywords" content="" />
+<link rev="made" href="mailto:webmaster@dummy.net" />
+
+<link href="./css/orange.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="../favicon.ico" />
+
+<title>2009年度 後期学生実験「IPネットワークアーキテクチャ」 - DNSの設定方法</title>
+
+</head>
+
+<body>
+
+<div id="base">
+
+<h1>DNSの設定方法</h1>
+
+<p>
+</p>
+<h2>更新履歴</h2>
+
+<ul>
+	<li>2014/10/16 09:00 DNSにログを出力するオプションを追加した。</li>
+</ul>
+
+<h2>Cache Server</h2>
+<pre>$ sudo vi /etc/bind/named.conf.options</pre>
+<pre>acl local {
+    127.0.0.1;
+};
+acl jikken{
+    192.168.0.0/16;
+};
+
+logging {
+    channel querylog {
+        file "/var/cache/bind/bind9/log" versions 100 size 10m;
+        severity debug 8;
+        print-time yes;
+    };
+    category resolver { querylog; };
+    category security { querylog; };
+    category queries { querylog; };
+};
+
+options {
+    querylog yes;
+    
+    directory "/var/cache/bind";
+
+    listen-on{ any; };
+    listen-on-v6 { any; };
+
+
+    recursion yes;
+    allow-recursion {
+        local;
+        jikken;
+    }; // allow recursive query
+    allow-query{
+        local;
+        jikken;
+    }; // allow query
+    allow-query-cache {
+        local;
+        jikken;
+    }; // if not set, it will be the same as allow-query
+
+    allow-transfer {none; };
+    auth-nxdomain no;    # conform to RFC1035
+};</pre>
+
+<h2>Master Zone Serverの設定方法</h2>
+my.example.org. ゾーンのMasterの設定
+<p>/etc/bind/named.conf に書き加える設定
+<pre>zone &quot;my.example.org.&quot; {
+  type master;
+  file &quot;/etc/bind/master/zone&quot;;
+  allow-query { any; };
+};</pre>
+<ul>
+<li>type master とすることで、このゾーンのmasterサーバであることを示す。</li>
+<li>file でこのゾーンの設定ファイルを指定する。 </li>
+<li>allow-query を any にしておくことで、誰に対しても名前解決を提供する。</li>
+</ul>
+</p>
+
+
+<p>
+ゾーンファイル ： /etc/bind/master/zone （上記ファイルで設定したパス）
+<pre>$TTL 86400
+@   IN  SOA   ns.my.example.org. administrator.my.example.org. (
+        5       ; Serial
+        604800  ; Refresh
+        86400   ; Retry
+        2419200 ; Expire
+        604800  ; Negative Cache TTL
+    )
+    IN  A     192.168.1.2
+    IN  NS    ns.my.example.org.
+    IN  MX    10  ns.my.example.org.
+
+ns      IN  A    192.168.1.2
+userA   IN  A    192.168.1.5</pre>
+<ul>
+<li>@ は デフォルトのゾーンを示す。この場合、named.confで指定したmy.example.org. </li>
+<li>SOA は ゾーンのAuthority情報。</li>
+<li>（）を使うことで複数行にわたって書くことができる。</li>
+<li>Serial Numberは、このゾーンファイルを更新する度に増やす必要がある。増やさない限り反映されない。</li>
+<li>それ以外は基本的に変更する必要なし。</li>
+<li>下の方にAレコードを書いている。名前とアドレスの関係はここに書く。</li>
+</ul>
+</p>
+
+<h2>委譲の設定方法</h2>
+example.orgのゾーンを管理するコンテンツサーバから、test.example.orgゾーンを192.168.10.2に委譲する例。
+<p>/etc/bind/named.conf
+<pre>zone "example.org." {
+	type master;
+	file "master/zone";
+	allow-query { any; };
+};</pre></p>
+
+<p>ゾーンファイル<br />
+<pre>$TTL 172800
+@	IN	SOA	ns.example.org. ops.example.org. (
+				4	; Serial
+			   604800	; Refresh
+			    86400	; Retry
+			  2419200	; Expire
+			   604800 )	; Negative Cache TTL
+	IN	A	192.168.1.2
+	IN	NS	ns.example.org.
+	IN	MX	10 mail.example.org.
+
+ns      IN      A       192.168.1.2
+test	IN	NS	ns-test
+ns-test	IN	A	192.168.10.2
+mail    IN      A       192.168.1.5
+</pre></p>
+
+
+</div><!-- End of base div -->
+
+</body>
+
+</html>
+

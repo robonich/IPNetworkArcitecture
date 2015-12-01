@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+
+<meta name="generator" content="" />
+<meta name="author" content="" />
+<meta name="description" content="東京大学電子情報工学科 2012年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」の講義用Webサイト" />
+<meta name="keywords" content="" />
+<link rev="made" href="mailto:webmaster@dummy.net" />
+
+<link href="./css/orange.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="../favicon.ico" />
+
+<title>ルーティングソフトウェア quagga の設定</title>
+
+</head>
+
+<body>
+
+<div id="base">
+
+<h1>ルーティングソフトウェア quagga の設定</h1>
+
+<p>
+実験で使用する UNIX 用ルーティングソフトウェア <a href="http://www.quagga.net/">quagga</a> の基本的な設定について紹介する．
+</p>
+
+<h2>このドキュメントについて</h2>
+
+<p>
+このドキュメントは東京大学電子情報工学科 2009年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」のために， 2009 年 10 月 12 日に quagga 0.99.9-2ubuntu1.3 について書かれたドキュメントである．
+</p>
+
+<h2>更新履歴</h2>
+
+<ul>
+	<li>2009/10/12 00:00 このページを作成．</li>
+	<li>2009/10/26 22:22 quagga の再起動方法を記述．</li>
+	<li>2012/11/13 19:00 コンフィグの記述に追記、及び細かい修正</li>
+	<li>2014/10/06 13:00 Tips: Quagga設定書き込みエラー対策</li>
+</ul>
+
+<h2>目次</h2>
+
+<ul>
+	<li>このドキュメントについて</li>
+	<li>更新履歴</li>
+	<li>目次</li>
+	<li>リンク</li>
+	<li>イントロダクション</li>
+	<li>環境</li>
+	<li>インストール</li>
+	<li>コンフィグファイルのコピー</li>
+	<li>コンフィグファイルの編集</li>
+	
+		<ul>
+			<li>daemons</li>
+			<li>debian.conf</li>
+			<li>vtysh.conf</li>
+			<li>zebra.conf</li>
+			<li>ripd.conf</li>
+		</ul>
+	<li>quagga の再起動</li>
+	<li>vtysh へのログイン</li>
+	<li>IOS系コマンドラインの基本的な使い方</li>
+	
+		<ul>
+			<li>候補の表示</li>
+			<li>コマンドの補完</li>
+			<li>ユーザ EXEC モードと特権 EXEC モード</li>
+			<li>コンフィグの確認</li>
+			<li>グローバルコンフィギュレーションモードへの移行</li>
+			<li>各コンフィギュレーションモードへの移行</li>
+			<li>各コンフィギュレーションモードでのコンフィグ</li>
+			<li>各コンフィギュレーションモードからの離脱</li>
+			<li>コンフィグの確認(再掲)</li>
+			<li>コンフィグの保存</li>
+		</ul>
+	
+</ul>
+
+
+<h2>リンク</h2>
+
+<ul>
+	<li><a href="http://www.quagga.net/">Quagga Software Routing Suite</a></li>
+	<li><a href="http://www.zebra.org/">GNU Zebra -- routing software</a></li>
+	<li><a href="http://ja.wikipedia.org/wiki/%E3%82%AF%E3%82%A2%E3%83%83%E3%82%AC">クアッガ - Wikipedia</a></li>
+</ul>
+
+<h2>イントロダクション</h2>
+
+<p>
+<a href="http://www.quagga.net/">quagga</a> は 石黒邦宏氏が開発したルーティングソフトウェア GNU zebra の派生ソフトウェアで，FreeBSD, NetBSD, Linux, Solaris などの UNIX で動作し，OSPFv2, OSPFv3, RIP v1, RIP v2, RIPng, BGP-4 などのルーティングプロトコルが実装されている．quagga をインストールすることによって PC をソフトウェアルータとして動作させることが可能になる．
+</p>
+
+<p>
+quagga にはいくつかのルーティングデーモンが含まれている．zebra は quagga のコアデーモンで，UNIX のカーネル上に抽象化レイヤを構築し，後に挙げるルーティングデーモンに対して API(Zserv API) を提供する．また static ルーティングなどの設定を行う．ripd は RIPv1 と RIPv2，ospfd は OSPFv2，ospf6d は OSPFv3(IPv6)，ripngd は RIPng(IPv6)，bgpd は BGPv4+(IPv6) を実装したデーモン (Zserv clients) である．
+</p>
+
+<p>
+また，quagga は Cisco のルータやスイッチに使用されている基本ソフトウェア，IOS のコマンドラインに良く似たコマンドラインを持つため，Cisco のネットワーク機器を扱う練習台としても利用されている．
+</p>
+
+<p>
+各種設定方法などのドキュメントは<a href="http://www.quagga.net/docs/docs-multi/index.html">こちら</a>から確認することができる．
+</p>
+
+<h2>環境</h2>
+
+<p>
+主に本実験で使用する Ubuntu 8.04 について記す．Linux のターミナルの基礎的な操作方法は理解しているものとして説明を行う．
+</p>
+
+<h2>インストール</h2>
+
+<p>
+Ubuntu ではパッケージ化されているため apt-get install quagga でインストール可能である．
+</p>
+
+<pre>
+elab@denjo-pc:/etc/quagga$ sudo apt-get install quagga
+</pre>
+
+<p>
+FreeBSD では ports(/usr/ports/net/quagga)，NetBSD では pkgsrc(/usr/pkgsrc/net/quagga)，Mac OS X では macports(port install quagga) でインストール可能である．
+</p>
+
+<h2>コンフィグファイルのコピー</h2>
+
+<p>
+quagga のコンフィグファイルは /etc/quagga に置かれる．初期状態では daemons と debian.conf が置かれているはずである．
+</p>
+
+<pre>
+elab@denjo-pc:/etc/quagga$ ls -l    
+total 20
+-rw-r--r-- 1 root root 850 Oct  8 17:51 daemons
+-rw-r--r-- 1 root root 471 Jun  9 04:27 debian.conf
+</pre>
+
+<p>
+ルーティングデーモンのシェルで対話的に設定したコンフィグを保存すると，このディレクトリのコンフィグファイルに保存される．
+例えば ripd のコンフィグファイルは ripd.conf である．なお，コンフィグファイルが無い状態ではデーモンは起動しないため，
+サンプルコンフィグファイルを /usr/share/doc/quagga/examples/ からコピーする．
+サンプルコンフィグファイルには各デーモンのパスワードなどの設定など最低限必要な設定と設定例がコメントとして書かれている．
+利用する場合はファイル名末尾の .sample は消す．
+</p>
+
+<p>
+本実験ではコア・デーモンのコンフィグファイル zebra.conf，quagga のシェル <a href="http://www.quagga.net/docs/docs-multi/VTY-shell.html#VTY-shell">VTY shell</a> のコンフィグファイル vtysh.conf，本実験で使用する RIP のコンフィグファイル ripd.conf をコピーする．
+</p>
+
+<pre>
+elab@denjo-pc:/etc/quagga$ sudo cp /usr/share/doc/quagga/examples/zebra.conf.sample /etc/quagga/zebra.conf
+elab@denjo-pc:/etc/quagga$ sudo cp /usr/share/doc/quagga/examples/ripd.conf.sample  /etc/quagga/ripd.conf
+elab@denjo-pc:/etc/quagga$ sudo cp /usr/share/doc/quagga/examples/vtysh.conf.sample /etc/quagga/vtysh.conf
+</pre>
+
+<h2>コンフィグファイルの編集</h2>
+
+<p>
+quagga を使用するための基本的な設定を行う．ルーティングの設定は各デーモンのシェルから対話的に行うため，コンフィグファイルにルーティングの設定を直接書くことはしない．
+</p>
+
+<p>
+ここまでの手順でコンフィグファイルの存在は以下のようになっているはずである．
+</p>
+
+<pre>
+elab@denjo-pc:/etc/quagga$ ls -l    
+total 20
+-rw-r--r-- 1 root root 850 Oct  8 17:51 daemons
+-rw-r--r-- 1 root root 471 Jun  9 04:27 debian.conf
+-rw-r--r-- 1 root root 426 Oct  8 17:51 ripd.conf
+-rw-r--r-- 1 root root 126 Oct  8 17:50 vtysh.conf
+-rw-r--r-- 1 root root 389 Oct  8 17:51 zebra.conf
+</pre>
+
+<h3>daemons</h3>
+
+<p>
+起動するルーティングデーモンを指定するコンフィグファイルである．yes で起動，no で不起動，数値で優先度を指定できる．シェルスクリプト同様，先頭が # の行はコメントである．
+</p>
+
+<p>
+本実験では zebra と ripd を起動するため，以下のように書き換える．
+</p>
+
+<pre>
+zebra=yes
+bgpd=no
+ospfd=no
+ospf6d=no
+ripd=yes
+ripngd=no
+isisd=no
+</pre>
+
+<h3>debian.conf</h3>
+
+<p>
+ルーティングデーモンのオプションを指定するコンフィグファイルである．--daemon でデーモン化，-A で vtysh の LISTEN アドレスを指定できる．シェルスクリプト同様，先頭が # の行はコメントである．
+</p>
+
+<p>
+本実験では変更の必要は無い．
+</p>
+
+<pre>
+vtysh_enable=yes
+zebra_options=" --daemon -A 127.0.0.1"
+bgpd_options="  --daemon -A 127.0.0.1"
+ospfd_options=" --daemon -A 127.0.0.1"
+ospf6d_options="--daemon -A ::1"
+ripd_options="  --daemon -A 127.0.0.1"
+ripngd_options="--daemon -A ::1"
+isisd_options=" --daemon -A 127.0.0.1"
+</pre>
+
+<h3>vtysh.conf</h3>
+
+<p>
+vtysh のコンフィグファイルである．ユーザ名とパスワードを設定する．IOS 同様，先頭が ! の行はコメントである．
+</p>
+
+<p>
+本実験では特に変更しなくても良い．
+</p>
+
+<pre>
+service integrated-vtysh-config
+!hostname quagga-router
+username root nopassword
+</pre>
+
+<h3>zebra.conf</h3>
+
+<p>
+zebra のコンフィグファイルである．ホスト名やパスワードを設定する．IOS 同様，先頭が ! の行はコメントである．
+</p>
+
+<p>
+本実験では特に変更しなくても良い．
+</p>
+
+<pre>
+! -*- zebra -*-
+!
+! zebra sample configuration file
+!
+! $Id: quagga.html,v 1.1 2013/08/28 17:10:33 numata Exp $
+!
+hostname Router
+password zebra
+enable password zebra
+!
+! Interface's description. 
+!
+!interface lo
+! description test of desc.
+!
+!interface sit0
+! multicast
+
+!
+! Static default route sample.
+!
+!ip route 0.0.0.0/0 203.181.89.241
+!
+
+!log file /var/log/quagga/zebra.log
+
+</pre>
+
+<h3>ripd.conf</h3>
+
+<p>
+ripd のコンフィグファイルである．ホスト名やパスワードを設定する．IOS 同様，先頭が ! の行はコメントである．
+</p>
+
+<p>
+本実験では特に変更しなくても良い．
+</p>
+
+<p>
+"router rip" というコンフィグ（コマンド）により RIP ルータを有効にしていることを理解する．
+</p>
+
+<pre>
+! -*- rip -*-
+!
+! RIPd sample configuration file
+!
+! $Id: quagga.html,v 1.1 2013/08/28 17:10:33 numata Exp $
+!
+hostname ripd
+password zebra
+!
+! debug rip events
+! debug rip packet
+!
+router rip
+! network 11.0.0.0/8
+! network eth0
+! route 10.0.0.0/8
+! distribute-list private-only in eth0
+!
+!access-list private-only permit 10.0.0.0/8
+!access-list private-only deny any
+! 
+!log file /var/log/quagga/ripd.log
+!
+log stdout
+
+</pre>
+
+<h2>quagga の再起動</h2>
+
+<p>
+quagga のコンフィグレーションファイルを編集した場合は，編集内容を反映させるために quagga の再起動が必要になる．
+</p>
+
+<pre>
+$ sudo /etc/init.d/quagga restart
+Stopping Quagga daemons (prio:0): (ripd) (zebra) (bgpd) (ripngd) (ospfd) (ospf6d) (isisd).
+Removing all routes made by zebra.
+Nothing to flush.
+Loading capability module if not yet done.
+Starting Quagga daemons (prio:10): zebra ripd.
+</pre>
+
+<p>
+この例では zebra と ripd を起動させるように変更した．なお，以降で説明する対話的なコンフィグレーションを行った場合は，この操作を行う必要は無い．
+</p>
+
+<h2>vtysh へのログイン</h2>
+
+<p>
+telnet で各ルーティングデーモンへログインすることが出来る．各デーモンのポート番号は以下の通りである．
+</p>
+
+<table cellspacing="1" border="0">
+<thead>
+	<tr><th>daemon</th><th>port</th></tr>
+</thead>
+<tbody>
+	<tr><td>zebra</td><td>2601</td></tr>
+	<tr><td>ripd</td><td>2602</td></tr>
+	<tr><td>ospfd</td><td>2604</td></tr>
+	<tr><td>bgpd</td><td>2605</td></tr>
+	<tr><td>ospf6d</td><td>2606</td></tr>
+</tbody>
+</table>
+
+<p>
+ripd へのログインは以下のように行う．パスワードは ripd.conf で設定したものである．
+</p>
+
+<pre>
+elab@denjo-pc:/etc/quagga$ telnet localhost 2602
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+
+Hello, this is Quagga (version 0.99.9).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+
+
+User Access Verification
+
+Password: 
+ripd>
+</pre>
+
+<p>
+
+"telnet localhost ripd"のようにポート番号の代わりにデーモン名を指定しても構わない．
+</p>
+
+<h2>IOS系コマンドラインの基本的な使い方</h2>
+
+<p>
+ログインすると
+</p>
+
+<pre>
+ripd>
+</pre>
+
+<p>
+のようなシェルが出現する．このシェルを用いてルータのコンフィグレーションを対話的に行うことが出来る．
+</p>
+
+<h3>候補の表示</h3>
+
+<p>
+? を入力することによりコマンドの候補を表示することが出来る．入力しても ? は表示されないが，便宜上 ? を記す．
+</p>
+
+<p>
+利用可能なコマンドを一覧できる．
+</p>
+
+<pre>
+ripd> ?
+  echo      Echo a message back to the vty
+  enable    Turn on privileged mode command
+  exit      Exit current mode and down to previous mode
+  help      Description of the interactive help system
+  list      Print command list
+  quit      Exit current mode and down to previous mode
+  show      Show running system information
+  terminal  Set terminal line parameters
+  who       Display who is on vty
+</pre>
+
+<p>
+e で始めるコマンドの一覧を表示する．
+</p>
+
+<pre>
+ripd> e?
+  echo    Echo a message back to the vty
+  enable  Turn on privileged mode command
+  exit    Exit current mode and down to previous mode
+ripd> e
+</pre>
+
+<p>
+コマンドの次の引数を調べる．この場合改行であるのでコマンドはこれで完了している．
+</p>
+
+<pre>
+ripd> enable ?
+  &lt;cr&gt;  
+ripd> enable 
+</pre>
+
+<h3>コマンドの補完</h3>
+
+<p>
+コマンドの入力中に tab キーを押すとコマンドを補完することが出来る．候補が複数ある場合は候補が一覧される．一意に補完できる場合はコマンドが補完されるが，補完しないまま入力してもコマンドとして解釈される．tab を入力しても文字は表示されないが，押す箇所を便宜上 [tab] として記す．
+</p>
+
+<p>
+候補が複数ある場合は候補が表示される．
+</p>
+
+<pre>
+ripd> e[tab]      
+echo       enable     exit   
+</pre>
+
+<p>
+一意に補完できる場合は補完される．
+</p>
+
+<pre>
+ripd> en[tab]
+ripd> enable 
+</pre>
+
+<p>
+一意に補完できる場合は入力途中でもコマンドとして実行できる．
+</p>
+
+<pre>
+ripd> en
+ripd#
+</pre>
+
+<h3>ユーザ EXEC モードと特権 EXEC モード</h3>
+
+<p>
+IOS には UNIX の一般ユーザと root のように，ユーザ EXEC モードと特権 EXEC モードが存在する．コンフィグは特権 EXEC モードでなければ行うことが出来ない．ユーザ EXEC モードから特権 EXEC モードへは enable で移行することが出来る．一般には enable パスワードがかけられている．
+</p>
+
+<p>
+前述のようにコンフィグは一意に補完が出来れば省略できるので en で enable が実行できる．特権 EXEC モードになるとプロンプトが # になる．
+</p>
+
+<pre>
+ripd> en
+ripd#
+</pre>
+
+<h3>コンフィグの確認</h3>
+
+<p>
+実行中のコンフィグ (running-config) を確認するには show running-config を利用する．
+</p>
+
+<pre>
+ripd# show ru
+
+Current configuration:
+!
+hostname ripd
+password zebra
+log stdout
+!
+router rip
+!
+line vty
+!
+end
+</pre>
+
+<h3>グローバルコンフィギュレーションモードへの移行</h3>
+
+<p>
+configure terminal は簡単に言えばルータのコンフィグを行うモード（グローバルコンフィギュレーションモード）へ移行するコマンドである．このモードへ移行することで，実行中のルータのコンフィグ (running-config) をリアルタイムで変更することが出来る．加えられた変更は保存しなければ電源を切ってしまうと消えてしまう．コンフィグの保存に関しては後述する．
+</p>
+
+<p>
+変更が即時に反映されるため誤ったコンフィグを入れると大変なことになる場合が多い．念のためにまずコンフィグをバックアップするのが安全である．面倒な場合は前述の show running-config で現在のコンフィグをターミナルに表示して残しておくという方法がよく行われる（ターミナルをクリアしないように注意する）．
+</p>
+
+<pre>
+ripd# conf t
+ripd(config)#
+</pre>
+
+<h3>各コンフィギュレーションモードへの移行</h3>
+
+<p>
+ルータの各種機能のコンフィグを行うためには，グローバルコンフィギュレーションモード (config) から，各種のコンフィギュレーションモードへ移行する．
+</p>
+
+<p>
+以下は RIP ルータのコンフィギュレーションモードへ移行する例である． tab 補完と ? でのヘルプ表示の使い方を参考にすると良い．
+</p>
+
+<pre>
+ripd(config)# r[tab]      
+ripd(config)# route?
+  route-map  Create route-map or enter route-map command mode
+  router     Enable a routing process
+ripd(config)# router
+ripd(config)# router ?
+  rip    Routing Information Protocol (RIP)
+  zebra  Make connection to zebra daemon
+ripd(config)# router r[tab]
+ripd(config)# router rip ?
+  &lt;cr&gt;  
+ripd(config)# router rip 
+ripd(config-router)# 
+</pre>
+
+<p>
+プロンプトの (config) が (config-router) となった．これで RIP ルータのコンフィギュレーションモードへ移行することが出来た．
+</p>
+
+<h3>各コンフィギュレーションモードのコンフィグ</h3>
+
+<p>
+RIP ルータのコンフィギュレーションモードに入ったら RIP ルータのコンフィグを行う．
+</p>
+
+<p>
+以下は RIP ルータのインターフェイスの有効化を行うコマンドを入力した例である．
+</p>
+
+<pre>
+ripd(config-router)# ?
+  default-information  Control distribution of default route
+  default-metric       Set a metric of redistribute routes
+  distance             Administrative distance
+  distribute-list      Filter networks in routing updates
+  end                  End current mode and change to enable mode.
+  exit                 Exit current mode and down to previous mode
+  help                 Description of the interactive help system
+  list                 Print command list
+  neighbor             Specify a neighbor router
+  network              Enable routing on an IP network
+  no                   Negate a command or set its defaults
+  offset-list          Modify RIP metric
+  passive-interface    Suppress routing updates on an interface
+  quit                 Exit current mode and down to previous mode
+  redistribute         Redistribute information from another routing protocol
+  route                RIP static route configuration
+  route-map            Route map set
+  show                 Show running system information
+  timers               Adjust routing timers
+  version              Set routing protocol version
+  write                Write running configuration to memory, network, or terminal
+ripd(config-router)# net[tab]
+ripd(config-router)# network ?  
+  A.B.C.D/M  IP prefix <network>/<length>, e.g., 35.0.0.0/8
+  WORD       Interface name
+ripd(config-router)# network 192.168.0.0/24
+ripd(config-router)# 
+</pre>
+
+<p>
+ネットワークの構成要素として RIP が知るべき情報には、そのルータが隣接するホストのIPアドレスと、それらとの通信に用いられるデバイスの情報がある．いずれも"network"コマンドにより設定の追加が可能である．
+</p>
+
+
+<h3>各コンフィギュレーションモードからの離脱</h3>
+
+<p>
+RIP ルータのコンフィグを終えてグローバルコンフィギュレーションモードに戻りたい時は exit コマンドで RIP ルータのコンフィギュレーションモードを抜けることが出来る．
+</p>
+
+<pre>
+ripd(config-router)# exit
+ripd(config)# 
+</pre>
+
+<p>
+end コマンドで一気にグローバルコンフィギュレーションモードからも抜けて，特権 EXEC モードへことが出来る．
+</p>
+
+<pre>
+ripd(config-router)# end
+ripd#
+</pre>
+
+<h3>コンフィグの確認(再掲)</h3>
+
+<p>
+実行中のコンフィグ (running-config) を確認するには show running-config を利用する．先ほど設定した network の設定が反映されていることを確認する．
+</p>
+
+<pre>
+ripd# show ru
+
+Current configuration:
+!
+hostname ripd
+password zebra
+log stdout
+!
+router rip
+ network 192.168.0.0/24
+ network 192.168.1.0/24
+ network eth1
+ network eth2
+!
+line vty
+!
+end
+</pre>
+
+<h3>コンフィグの保存</h3>
+
+<p>
+runnning-config は電源を抜くと消えてしまうコンフィグである．起動時に読み込まれる startup-config にコピーする必要がある．
+</p>
+
+<pre>
+ripd# copy running-config startup-config
+Configuration saved to /etc/quagga/ripd.conf
+</pre>
+
+write memory というコマンドはコンフィグの保存を行う古いコマンドであるが，タイプ数が少ないので未だによく利用される．
+
+<pre>
+ripd# wr me     
+Configuration saved to /etc/quagga/ripd.conf
+</pre>
+
+<h3>Tips</h3>
+<ul>
+	<li> /etc/quaggaの所有者がrootになっている場合あり</li>
+	<li> write memで失敗するのでchown quagga /etc/quagga/* する</li>
+	<li> openblocksの場合はtelnetではなくvtyshから入るとwrite memできる</li>
+</ul>
+<!--<h3>ルータの設定</h3>
+
+<p>
+ルータの設定はドキュメントを参照しつつ行う．
+</p>
+-->
+</div><!-- End of base div -->
+
+</body>
+
+</html>
+

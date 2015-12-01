@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+<!-- test -->
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+
+<meta name="generator" content="" />
+<meta name="author" content="" />
+<meta name="description" content="東京大学電子情報工学科 2013年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」の講義用Webサイト" />
+<meta name="keywords" content="" />
+<link rev="made" href="mailto:webmaster@dummy.net" />
+
+<link href="./css/orange.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="../favicon.ico" />
+
+<title>2015年度 後期学生実験「IPネットワークアーキテクチャ」</title>
+
+</head>
+
+<body>
+
+<div id="base">
+
+<h1>2015年度 後期学生実験「IPネットワークアーキテクチャ」</h1>
+
+<p>
+東京大学電子情報工学科 2015年度 後期学生実験 江崎・落合研担当の「IPネットワークアーキテクチャ」の講義用 Web サイトです。
+</p>
+
+<h2>連絡事項</h2>
+
+<ul>
+	<li>場所: 243号講義室</li>
+	<li>実験には学科で貸与されたPCを持参してください。OSはUbuntuを利用します。</li>
+	<li>実験中はネットワークマネージャを切るためインターネットが利用できません。以下の講義資料のダウンロード、およびパッケージのインストールは実験前にしておいてください。</li>
+</ul>
+
+<h2>メールアドレスの登録</h2>
+<p>
+こちらで貸し出した機材が返却されなかったなどの問題が発生した場合に連絡を行うため、メールアドレスを教えてもらっています。</br>
+<a href="https://docs.google.com/forms/d/1QArl_WiHhsWs9yJMeNeD6xHJ_qGs_Ox7pvMw7c9vB74/viewform">【登録フォーム】</a>の記入をお願いします。</br>
+
+</p>
+
+<h2>講義資料</h2>
+
+<p>実験で利用する講義資料を掲載します。
+</p>
+
+<ul>
+	<li><a href="./files/ipnetwork-all.zip">一括ダウンロード</a></li>
+	<li><a href="./files/ipnetwork-2015_text.pdf">テキスト</a></li>
+ 	<li><a href="./files/ipnetwork-2015-1st_day.pdf">1日目スライド</a></li>
+	<li><a href="./files/ipnetwork-2015-2nd_day.pdf">2日目スライド</a></li>
+	<li><a href="./files/ipnetwork-2015-3rd_day.pdf">3日目スライド</a></li>
+	<li><a href="./files/web-1.tar">【追加資料】Traceroute web service</a></li>
+</ul>
+
+<h2>Tips</h2>
+
+<ul>
+	<li><a href="./quagga.html">quaggaの設定</a></li>
+	<li><a href="./packages.html">パッケージの管理</a></li>
+	<li><a href="./shellscript.html">シェルスクリプト</a></li>
+	<li><a href="./dns.html">DNSの設定</a></li>
+</ul>
+
+<h2>実験で利用するパッケージ</h2>
+
+<p>
+<pre><code>
+$ sudo apt-get update</br>
+($ sudo apt-get upgrade)</br>
+$ sudo apt-get install tcpdump wireshark traceroute quagga bind9 dnstracer apache2 cu</br>
+</code></pre>
+</p>
+
+
+<h2>シリアルコンソールの使い方</h2>
+
+<pre><code>
+$ sudo chgrp root /dev/ttyUSB0</br>
+$ sudo cu -l /dev/ttyUSB0 -s 115200</br>
+</code></pre>
+</p>
+
+<h2>TAの連絡先</h2>
+
+<p>実験に関する質問等はこちらまでご連絡ください。</p>
+
+<p><a href="mailto:eeice-exp@hongo.wide.ad.jp">IPネットワークアーキテクチャTA (eeice-exp@hongo.wide.ad.jp)</a></p>
+
+<ul>
+	<li>平田（江崎研修士1年）</li>
+	<li>内海（江崎研修士1年）</li>
+	<li>樋口（江崎研修士1年）</li>
+	<li>井原（江崎研修士1年）</li>
+	<li>田口（江崎研修士1年）</li>
+	<li>小林（江崎研修士1年）</li>
+</ul>
+
+<script type="text/javascript">
+d = new Date(document.lastModified);
+year = d.getFullYear();
+month = d.getMonth() + 1;
+date = d.getDate();
+str = "最終更新: " + year + "/" + month + "/" + date;
+document.write(str);
+</script>
+
+</div><!-- End of base div -->
+
+</body>
+
+</html>
+

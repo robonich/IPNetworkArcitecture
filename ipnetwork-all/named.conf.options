@@ -1,0 +1,29 @@
+acl local{
+	127.0.0.1;
+};
+acl jikken{
+	192.168.0.0/16;
+};
+options {
+	directory "/var/cache/bind";
+
+	listen-on	{ 127.0.0.1; (your interface address if you want) };
+	listen-on-v6	{ any; };
+
+	recursion yes;
+	allow-recursion {
+		local;
+		jikken;
+	}; // allow recursive query
+	allow-query {
+		local;
+		jikken;
+	}; // allow query
+	allow-query-cache {
+		local;
+		jikken;
+	}; // if not set, it will be the same as allow-query
+	allow-transfer { none; };
+	auth-nxdomain no;    # conform to RFC1035
+};
+

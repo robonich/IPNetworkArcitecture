@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+
+<meta name="generator" content="" />
+<meta name="author" content="" />
+<meta name="description" content="東京大学電子情報工学科 2012年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」の講義用Webサイト" />
+<meta name="keywords" content="" />
+<link rev="made" href="mailto:webmaster@dummy.net" />
+
+<link href="./css/orange.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="../favicon.ico" />
+
+<title>シェルスクリプト</title>
+
+</head>
+
+<body>
+
+<div id="base">
+
+<h1>シェルスクリプト</h1>
+
+<p>
+シェルスクリプトの基本的なことについて説明する．シェルスクリプトに関する資料は Web にたくさんあるので，詳しくは各自検索して学習すること．
+</p>
+
+<h2>参考 Web サイト</h2>
+
+<ul>
+	<li><a href="http://www.k4.dion.ne.jp/~mms/unix/shellscript/index.html">シェルスクリプト入門</a></li>
+	<li><a href="http://cyberam.dip.jp/linux_command/shellscript/shellscript_main.html">シェルスクリプト（Bash）</a></li>
+	<li><a href="http://www.syns.net/10/">シェルスクリプトの基礎</a></li>
+</ul>
+
+<h2>シェルスクリプトとは</h2>
+
+<p>
+シェルスクリプトとはシェルで実行する一連のコマンドをファイルに記述したスクリプト，つまりテキストで書かれた実行ファイルである．一連の処理をシェルスクリプトに記述することで何度も同じ処理をコマンドから入力する必要がなくなる．
+</p>
+
+<h2>簡単なシェルスクリプト例</h2>
+
+<p>
+１．以下の内容を routerA.sh として保存する．一行目の #!/bin/sh は shebang（シェバン）と言い，このスクリプトを解釈して実行するプログラム（インタープリタ）を指定する．#!/usr/bin/perl なら perl スクリプトとして実行される．
+</p>
+
+<pre>
+#!/bin/sh
+sudo ifconfig eth0 192.168.0.2 netmask 255.255.255.0
+sudo ifconfig eth1 192.168.1.2 netmask 255.255.255.0
+sudo ifconfig eth2 192.168.2.2 netmask 255.255.255.0
+sudo route add -net 192.168.3.0 netmask 255.255.255.0 gw 192.168.1.1 dev eth1
+sudo route add -net 192.168.4.0 netmask 255.255.255.0 gw 192.168.2.1 dev eth2
+</pre>
+
+<p>
+２．routerA.sh に実行権限を付加する．
+</p>
+
+<pre>
+$ chmod +x routerA.sh
+</pre>
+
+<p>
+３．実行する．これでシェルスクリプトに記述した処理がすべて実行される．
+</p>
+
+<pre>
+$ ./routerA.sh
+</pre>
+
+<h2>講義で使用したシェルスクリプト例</h2>
+
+<p>
+以下は講義で用いるシェルスクリプトの例である。
+</p>
+
+<pre>
+ 1 #!/bin/sh
+ 2 
+ 3 sysctl -w net.ipv4.conf.all.forwarding=1
+ 4 sysctl -w net.ipv4.conf.all.rp_filter=0
+ 5 sysctl -w net.ipv4.conf.default.rp_filter=0
+ 6 
+ 7 for eth in `ifconfig -a | grep -o -e "eth[0-9]\+" | uniq`
+ 8 do
+ 9     sysctl -w net.ipv4.conf.${eth}.rp_filter=0
+10 done
+</pre>
+
+<p>
+このシェルスクリプトでは、現在認識されている全てのインターフェースにフォワーディングを行うように、またリバースパスフィルターというフィルタリングを行わないように設定している。
+</p>
+
+<p>
+まず、3行目では全てのインターフェースがフォワーディングを行うように設定し、同様に4から5行目では、リバースパスフィルターの設定を行っている。しかし、リバースパスフィルターについては、これだけでは各インターフェースに対して設定が反映されないため、7から10行目にて各インターフェースに対してrp_filter=0を設定している。
+</p>
+
+<p>
+次に、7行目について解説する。ここでは、上記のsysctl文をインターフェースの分だけ行いたいためfor文を用いた。しかし、対象とするインターフェースは単純に0または1から連続した番号になるわけではない。そこで、今回はifconfigの出力結果から応用することにした。シェルスクリプトではバッククォーテーションを用いることで出力結果を代入することが可能である。なのでethという変数には
+</p>
+
+<pre>
+$ ifconfig -a | grep -o -e "eth[0-9]\+" | uniq
+</pre>
+
+<p>
+というコマンドの出力結果が代入されている。これらのコマンドでは、まずifconfigに -a オプションを加えることで全てのインターフェースの状態を出力し、その結果をパイプで次のコマンドに結果を渡している。そして、渡されたifconfigの結果に対して、どのようなインターフェースが存在するかをgrepで検索する。今回は、eth${X}（${X}は任意の数字）というインターフェースのみを対象としているため、 -e オプションを用いて正規表現で検索した。しかし、このままではeth${X}という文字列を含む行の全文が出力されてしまうため、さらに -o オプションも付加してマッチする文字列部分のみを抜き出している。最後に出力結果に重複のないように、ここまでの結果をパイプでuniqコマンドに渡している。以上が上記のシェルスクリプトの内容の解説である。このサンプルについては、以下のようにwgetコマンドでダウンロードできる。
+</p>
+
+<pre>
+$ wget http://www.hongo.wide.ad.jp/exp/2013w/sh/init.sh
+</pre>
+
+</div><!-- End of base div -->
+
+</body>
+
+</html>
+

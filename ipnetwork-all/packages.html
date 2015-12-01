@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+
+<meta name="generator" content="" />
+<meta name="author" content="" />
+<meta name="description" content="東京大学電子情報工学科 2012年度 後期学生実験 江崎研担当の「IPネットワークアーキテクチャ」の講義用Webサイト" />
+<meta name="keywords" content="" />
+<link rev="made" href="mailto:webmaster@dummy.net" />
+
+<link href="./css/orange.css" rel="stylesheet" type="text/css" />
+<link rel="shortcut icon" href="../favicon.ico" />
+
+<title>パッケージの管理</title>
+
+</head>
+
+<body>
+
+<div id="base">
+
+<h1>パッケージの管理</h1>
+
+<p>
+Ubuntu ではソフトウェアをパッケージとして管理している．Desktop 環境ではパッケージマネージャやアップデートマネージャなどの GUI アプリケーションを用いて行うが，ここではコマンドラインから行う簡単なパッケージの管理について紹介する．
+</p>
+
+<h2>パッケージの更新とインストール</h2>
+
+<p>
+ここではパッケージの管理には apt-get コマンドを利用する．このコマンドの実行には管理者権限が必要なので sudo を用いる．
+</p>
+
+<p>
+パッケージ管理コマンドには，他に aptitude などもあるが，使用するときはどちらかに統一すること．aptitude を利用している場合はこの節は読み飛ばして構わない．
+</p>
+
+<p>
+まずはパッケージ情報の更新を apt-get update で行う．更新がうまく行えないときは，ネットワークの設定を確認した後， /etc/apt/sources.list を確認すると良い．
+</p>
+
+<pre>
+# パッケージの情報を最新にする
+elab@denjo-pc:~$ sudo apt-get update
+</pre>
+
+<p>
+インストールされているパッケージに更新されているものがある場合は apt-get upgrade で更新する．-s オプションを用いるとどのパッケージが更新されるかという情報を知ることができる．Ubuntu サーバの管理では apt-get update 後，apt-get -s upgrade を行った結果を1日1回メールするような通知方法がとられることが多い．
+</p>
+
+<pre>
+# 更新のあったすべてのパッケージの更新を行う
+elab@denjo-pc:~$ sudo apt-get upgrade
+</pre>
+
+<p>
+パッケージを検索するには apt-cache search を行う．このコマンドには管理者権限は必要ない．
+</p>
+
+<pre>
+# quagga パッケージを検索する
+elab@denjo-pc:~$ apt-cache search quagga
+netscript-2.4 - Linux 2.4.x (and 2.6.x) router/firewall network configuration system
+quagga - BGP/OSPF/RIP routing daemon
+quagga-doc - documentation files for quagga
+</pre>
+
+<p>
+パッケージのインストールには apt-get install を用いる．
+</p>
+
+<pre>
+# quagga パッケージをインストールする
+elab@denjo-pc:~$ sudo apt-get install quagga
+</pre>
+
+<p>
+アンインストールなど，この他の管理方法に関しては man を参照すること．
+</p>
+
+<h2>デーモンの起動管理</h2>
+
+<p>
+quagga や bind などのデーモンソフトウェアをインストールすると，Ubuntu ではインストール後に自動的にデーモンが起動され，OS の起動時にもデーモンが起動されるようになっている．本実験で利用するソフトウェアのうち quagga などは普段は使わないと思われるので，起動しておきたくないと思うだろう．ここでは OS の起動時に自動的に実行しないようにする方法を紹介する．
+</p>
+
+<p>
+デーモンの自動実行の管理には update-rc.d を用いる．インストールされた quagga を自動的に起動しないようにするには以下のコマンドを実行する．
+</p>
+
+<pre>
+elab@denjo-pc:~$ sudo update-rc.d -f quagga remove
+</pre>
+
+<p>
+一度自動起動しないようにした quagga デーモンを再び自動起動するように設定るには以下のコマンドを実行する．
+</p>
+
+<pre>
+elab@denjo-pc:~$ sudo update-rc.d -f quagga default
+</pre>
+
+</div><!-- End of base div -->
+
+</body>
+
+</html>
+
